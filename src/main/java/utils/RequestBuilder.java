@@ -10,6 +10,7 @@ import java.util.Locale;
 public class RequestBuilder {
     static final String CONTENT_TYPE = "Content-Type: ";
     static final String CONTENT_LENGTH = "Content-Length: ";
+    static final String AUTHORIZATION = "Authorization: ";
 
     public static Request buildRequest(BufferedReader in) throws IOException {
         String line = in.readLine();
@@ -31,6 +32,9 @@ public class RequestBuilder {
                 }
                 if (line.startsWith(CONTENT_TYPE)) {
                     request.setContentType(getContentType(line));
+                }
+                if (line.startsWith(AUTHORIZATION)) {
+                    request.setAuthorization(getAuthorization(line));
                 }
             }
 
@@ -60,12 +64,16 @@ public class RequestBuilder {
     }
 
 
-    private static String getParams(String[] splittedFirstLine, Boolean hasParams) {
+/*    private static String getParams(String[] splitFirstLine, Boolean hasParams) {
         if (hasParams) {
-            return splittedFirstLine[1].split("\\?")[1];
+            return splitFirstLine[1].split("\\?")[1];
         }
 
-        return "";
+        return splitFirstLine[1];
+    }*/
+
+    private static String getParams(String[] splitFirstLine, Boolean hasParams) {
+        return splitFirstLine[1].split("\\/(?!.*\\/)")[1];
     }
 
     private static Integer getContentLength(String line) {
@@ -74,5 +82,9 @@ public class RequestBuilder {
 
     private static String getContentType(String line) {
         return line.substring(CONTENT_TYPE.length());
+    }
+
+    private static String getAuthorization(String line) {
+        return line.substring(AUTHORIZATION.length());
     }
 }
