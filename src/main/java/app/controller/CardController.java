@@ -26,7 +26,7 @@ public class CardController extends Controller{
 
     // POST /packages (admin only)
     public Response createPackages(Request request) {
-        ArrayList<Card> cardList = null;
+        ArrayList<Card> cardList = new ArrayList<>();
         try {
             if(request.getAuthorization().equals("Basic admin-mtcgToken")) {
                 // request.getBody() => "{ \"id\": 4, \"name\": \"kienboec\", ... }
@@ -105,14 +105,186 @@ public class CardController extends Controller{
     }
 
     public Response showCards(Request request) {
-        return null;
+        ArrayList<Card> cardList = new ArrayList<>();
+        StringBuilder allCardsJSON = new StringBuilder("{");
+        if(request.getAuthorization() == null){
+            return new Response(
+                    HttpStatus.BAD_REQUEST,
+                    ContentType.JSON,
+                    "{ message: \"No Authorization token given.\" }"
+            );
+        }
+        String username = request.getAuthorization().split(" ")[1].split("-")[0];
+        if(this.userService.checkIfUserExists(username)) {
+            User user = this.userService.getUserByUsername(username);
+            cardList = this.cardService.getAllCardsForUser(user.getId());
+            if(cardList == null){
+                return new Response(
+                        HttpStatus.BAD_REQUEST,
+                        ContentType.JSON,
+                        "{ message: \"You have no cards! Acquire a package and try again.\" }"
+                );
+            }
+            int i = 1;
+            for (Card c : cardList) {
+                String cardString = "                                                              " +
+                        "Card " + i + ": Name: \"" + c.getName() + "\" Damage: \"" + c.getDamage() + "\" Id: \"" + c.getToken() + "\"";
+                i++;
+                allCardsJSON.append(cardString);
+            }
+            allCardsJSON.append("}");
+            return new Response(
+                    HttpStatus.OK,
+                    ContentType.JSON,
+                    allCardsJSON.toString()
+            );
+        }else{
+            return new Response(
+                    HttpStatus.BAD_REQUEST,
+                    ContentType.JSON,
+                    "{ message: \"Error: User does not exist, please create an account first.\" }"
+            );
+        }
     }
 
     public Response showDeck(Request request) {
-        return null;
+        ArrayList<Card> cardList =  new ArrayList<>();
+        StringBuilder allCardsJSON = new StringBuilder("{");
+        String username = request.getAuthorization().split(" ")[1].split("-")[0];
+        if(this.userService.checkIfUserExists(username)) {
+            User user = this.userService.getUserByUsername(username);
+            cardList = this.cardService.getDeckForUser(user.getId());
+            if(cardList == null){
+                return new Response(
+                        HttpStatus.BAD_REQUEST,
+                        ContentType.JSON,
+                        "{ message: \"You have no cards in your deck! Configure your deck and try again.\" }"
+                );
+            }
+            int i = 1;
+            for (Card c : cardList) {
+                String cardString = "                                                              " +
+                    "Card " + i + ": Name: \"" + c.getName() + "\" Damage: \"" + c.getDamage() + "\" Id: \"" + c.getToken() + "\"";
+                i++;
+                allCardsJSON.append(cardString);
+            }
+            allCardsJSON.append("}");
+            return new Response(
+                    HttpStatus.OK,
+                    ContentType.JSON,
+                    allCardsJSON.toString()
+            );
+        }else{
+            return new Response(
+                    HttpStatus.BAD_REQUEST,
+                    ContentType.JSON,
+                    "{ message: \"Error: User does not exist, please create an account first.\" }"
+            );
+        }
+    }
+
+    public Response showDeckPlain(Request request) {
+        ArrayList<Card> cardList =  new ArrayList<>();
+        StringBuilder allCardsHTML = new StringBuilder(
+                "<table><tr>" +
+                        "<th>Card Number</th>" +
+                        "<th>Card Name</th>" +
+                        "<th>Damage</th>" +
+                        "<th>ID</th>" +
+                        "</tr>");
+        String username = request.getAuthorization().split(" ")[1].split("-")[0];
+        if(this.userService.checkIfUserExists(username)) {
+            User user = this.userService.getUserByUsername(username);
+            cardList = this.cardService.getDeckForUser(user.getId());
+            if(cardList == null){
+                return new Response(
+                        HttpStatus.BAD_REQUEST,
+                        ContentType.JSON,
+                        "{ message: \"You have no cards in your deck! Configure your deck and try again.\" }"
+                );
+            }
+            int i = 1;
+            for (Card c : cardList) {
+                String cardString = "<tr><td>" + i + "</td><td>" + c.getName() + "</td><td>" + c.getDamage() + "</td><td>" + c.getToken() + "</td></tr>";
+                i++;
+                allCardsHTML.append(cardString);
+            }
+            allCardsHTML.append("</table>");
+            return new Response(
+                    HttpStatus.OK,
+                    ContentType.HTML,
+                    allCardsHTML.toString()
+            );
+        }else{
+            return new Response(
+                    HttpStatus.BAD_REQUEST,
+                    ContentType.JSON,
+                    "{ message: \"Error: User does not exist, please create an account first.\" }"
+            );
+        }
     }
 
     public Response configureDeck(Request request) {
-        return null;
+        String username = request.getAuthorization().split(" ")[1].split("-")[0];
+        ArrayList<String> cardIdList = new ArrayList<>();
+        try{
+            if(this.userService.checkIfUserExists(username)) {
+                User user = this.userService.getUserByUsername(username);
+                cardIdList = this.getObjectMapper().readValue(request.getBody(), new TypeReference<ArrayList<String>>(){});
+                if(cardIdList.size() != 4){
+                    return new Response(
+                            HttpStatus.BAD_REQUEST,
+                            ContentType.JSON,
+                            "{ message: \"Error: You need to assign exactly 4 Cards to your Deck.\" }"
+                    );
+                }else{
+                    int i = 1;
+                    for (String ID : cardIdList) {
+                        if(this.cardService.checkIfCardBelongsToUser(ID, user.getId())){
+                            if(this.cardService.checkIfCardIsAlreadyInDeck(ID)){
+                                return new Response(
+                                        HttpStatus.BAD_REQUEST,
+                                        ContentType.JSON,
+                                        "{ message: \"Error: Card " + i + " is already in your Deck.\" }"
+                                );
+                            }else{
+                                if(!this.cardService.insertCardInDeck(ID)){
+                                    return new Response(
+                                            HttpStatus.INTERNAL_SERVER_ERROR,
+                                            ContentType.JSON,
+                                            "{ \"message\" : \"Internal Server Error\" }"
+                                    );
+                                }
+                            }
+                        }else{
+                            return new Response(
+                                    HttpStatus.BAD_REQUEST,
+                                    ContentType.JSON,
+                                    "{ message: \"Error: Incorrect Card ID at Card " + i + " (does not belong to you or does not exist).\" }"
+                            );
+                        }
+                        i++;
+                    }
+                    return new Response(
+                            HttpStatus.OK,
+                            ContentType.JSON,
+                            "{ message: \"Deck configured successfully!\" }"
+                    );
+                }
+            }else{
+                return new Response(
+                        HttpStatus.BAD_REQUEST,
+                        ContentType.JSON,
+                        "{ message: \"Error: User does not exist, please create an account first.\" }"
+                );
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return new Response(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                ContentType.JSON,
+                "{ \"message\" : \"Internal Server Error\" }"
+        );
     }
 }

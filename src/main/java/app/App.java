@@ -23,7 +23,10 @@ public class App implements ServerApp {
     @Override
     public Response handleRequest(Request request) {
         if (request.getPathname().contains("/users") && request.getMethod() == Method.GET) {
-            return this.userController.getUserByUsername(request);
+            return this.userController.getUser(request);
+
+        } else if (request.getPathname().contains("/users") && request.getMethod() == Method.PUT) {
+            return this.userController.editUser(request);
 
         } else if (request.getPathname().equals("/users") && request.getMethod() == Method.POST) {
             return this.userController.register(request);
@@ -42,6 +45,9 @@ public class App implements ServerApp {
 
         } else if(request.getPathname().equals("/deck") && request.getMethod() == Method.GET){
             return this.cardController.showDeck(request);
+
+        } else if(request.getPathname().equals("/deck?format=plain") && request.getMethod() == Method.GET){ //FIX THIS!
+            return this.cardController.showDeckPlain(request);
 
         } else if(request.getPathname().equals("/deck") && request.getMethod() == Method.PUT){
             return this.cardController.configureDeck(request);
@@ -70,12 +76,12 @@ public class App implements ServerApp {
                     ContentType.JSON,
                     "{ \"message\" : \"Not implemented yet.\" }"
             );
+        }else{
+            return new Response(
+                    HttpStatus.BAD_REQUEST,
+                    ContentType.JSON,
+                    "{ \"message\" : \"Bad Request. (or the main page, welcome, in that case :)\" }"
+            );
         }
-
-        return new Response(
-            HttpStatus.BAD_REQUEST,
-            ContentType.JSON,
-            "[]"
-        );
     }
 }

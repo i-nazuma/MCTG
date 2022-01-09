@@ -2,6 +2,7 @@ package app.controller;
 
 import app.model.Card;
 import app.model.User;
+import app.model.UserProfile;
 import app.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import http.ContentType;
@@ -21,7 +22,7 @@ public class UserController extends Controller {
     }
 
     // GET /user
-    public Response getUserByUsername(Request request) {
+    public Response getUser(Request request) {
         if(request.getParams().equals("users") || request.getParams().equals("users/")){
             return new Response(
                     HttpStatus.OK,
@@ -30,36 +31,25 @@ public class UserController extends Controller {
             );
         }else if (this.userService.checkIfUserExists(request.getParams())){
             User user = null;
-            try {
+            UserProfile additionalData = null;
                 user = this.userService.getUserByUsername(request.getParams());
+                additionalData = this.userService.getUserProfile(user.getId());
                 if(user.getToken().equals(request.getAuthorization())){
-                    String userDataJSON = this.getObjectMapper().writeValueAsString(user);
-
                     return new Response(
                             HttpStatus.OK,
                             ContentType.JSON,
-                            userDataJSON
+                            "{ Username: " + user.getUsername() + ": Name: \"" + additionalData.getName() + "\" Bio: \"" + additionalData.getBio() + "\" Image: \"" + additionalData.getImage() + "\""
                     );
-                }else{
-                    return new Response(
-                            HttpStatus.UNAUTHORIZED,
-                            ContentType.JSON,
-                            "{ message: \"You are not allowed to view other users data!\" }"
-                    );
-                }
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-                return new Response(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
+                }else return new Response(
+                        HttpStatus.UNAUTHORIZED,
                         ContentType.JSON,
-                        "{ \"message\" : \"Internal Server Error\" }"
+                        "{ message: \"You are not allowed to view other users data!\" }"
                 );
-            }
         }else{
             return new Response(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    HttpStatus.OK,
                     ContentType.JSON,
-                    "{ \"message\" : \"not found\" }"
+                    "{ \"message\" : \"User not found\" }"
             );
         }
     }
@@ -187,5 +177,50 @@ public class UserController extends Controller {
             }
         }
         return null;
+    }
+
+    public Response editUser(Request request) {
+        String username = request.getParams();
+        if(username.equals("users") || username.equals("users/")){
+            return new Response(
+                    HttpStatus.OK,
+                    ContentType.JSON,
+                    "{ message: \"add your username to the end of the URL to edit your user data! Example: users/janedoe \" }"
+            );
+        }else if (this.userService.checkIfUserExists(request.getParams())){
+            User user = null;
+            UserProfile userProfile = null;
+            try {
+                user = this.userService.getUserByUsername(request.getParams());
+                if(user.getToken().equals(request.getAuthorization())){
+                    userProfile = this.getObjectMapper().readValue(request.getBody(), UserProfile.class);
+                    this.userService.updateUser(user.getUsername(), userProfile.getName(), userProfile.getBio(), userProfile.getImage());
+                    return new Response(
+                            HttpStatus.OK,
+                            ContentType.JSON,
+                            "{ message: \"User edited successfully!\" }"
+                    );
+                }else{
+                    return new Response(
+                            HttpStatus.UNAUTHORIZED,
+                            ContentType.JSON,
+                            "{ message: \"You are not allowed to edit other users data!\" }"
+                    );
+                }
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                return new Response(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        ContentType.JSON,
+                        "{ \"message\" : \"Internal Server Error\" }"
+                );
+            }
+        }else{
+            return new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ContentType.JSON,
+                    "{ \"message\" : \"User not found\" }"
+            );
+        }
     }
 }
