@@ -138,17 +138,98 @@ public class CardService {
 
     public ArrayList<Card> getAllCardsForUser(int user_id){
         ArrayList<Card> allCards = new ArrayList<>();
+        try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
+                SElECT token, name, damage FROM cards WHERE user_id=?
+                """ )
+        ) {
+            stmt.setInt(1, user_id);
+            ResultSet resultSet = stmt.executeQuery();
+            while( resultSet.next() ) {
+                allCards.add(new Card(
+                        resultSet.getString(1),
+                        resultSet.getString( 2 ),
+                        resultSet.getFloat( 3 )
+
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return allCards;
     }
 
-    public Card getCardByID(String ID){
-
-        return null;
+    public boolean checkIfCardBelongsToUser(String id, int user_id){
+        int tmpID = 0;
+        try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
+                SElECT user_id FROM cards
+                 WHERE token=?""" )
+        ) {
+            stmt.setString(1, id);
+            ResultSet resultSet = stmt.executeQuery();
+            if( resultSet.next() ) {
+                tmpID = resultSet.getInt(1);
+                return tmpID == user_id;
+            }else { //card doesn't exist
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
+    public boolean checkIfCardIsAlreadyInDeck(String id){
+        try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
+                SElECT in_deck FROM cards
+                 WHERE token=?""" )
+        ) {
+            stmt.setString(1, id);
+            ResultSet resultSet = stmt.executeQuery();
+            if( resultSet.next() ) {
+                return resultSet.getBoolean(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    public boolean insertCardInDeck(String id){
+        try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
+                UPDATE cards SET in_deck = true WHERE token = ?""" )
+        ) {
+            stmt.setString(1, id);
+            stmt.execute();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
     public ArrayList<Card> getDeckForUser(int user_id){
-        ArrayList<Card> allCards = new ArrayList<>();
-        return null;
+        ArrayList<Card> allCardsInDeck = new ArrayList<>();
+        try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
+                SElECT token, name, damage FROM cards
+                 WHERE user_id=? AND in_deck=true""" )
+        ) {
+            stmt.setInt(1, user_id);
+            ResultSet resultSet = stmt.executeQuery();
+            if(!resultSet.next()){
+                return null;
+            }
+            while( resultSet.next() ) {
+                allCardsInDeck.add(new Card(
+                        resultSet.getString(1),
+                        resultSet.getString( 2 ),
+                        resultSet.getFloat( 3 )
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return allCardsInDeck;
     }
 
 }

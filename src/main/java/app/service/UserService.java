@@ -1,6 +1,7 @@
 package app.service;
 
 import app.model.User;
+import app.model.UserProfile;
 import database.DatabaseService;
 
 import java.sql.*;
@@ -169,5 +170,41 @@ public class UserService {
             e.printStackTrace();
         }
         return allUsers;
+    }
+
+    public void updateUser(String username, String name, String bio, String image){
+        try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
+                UPDATE users SET name=?, bio=?, image=? WHERE username=?
+                """ )
+        ) {stmt.setString(1, name);
+            stmt.setString( 2, bio);
+            stmt.setString( 3, image);
+            stmt.setString( 4, username);
+
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public UserProfile getUserProfile(int userID){
+        try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
+                SELECT name, bio, image
+                 FROM users WHERE id=?
+                 """)
+        ) {
+            stmt.setInt( 1, userID);
+            ResultSet resultSet = stmt.executeQuery();
+            if( resultSet.next() ) {
+                return new UserProfile(
+                        resultSet.getString(1),
+                        resultSet.getString( 2 ),
+                        resultSet.getString( 3 )
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
