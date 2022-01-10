@@ -1,7 +1,6 @@
 package app.service;
 
 import app.model.Card;
-import app.model.User;
 import database.DatabaseService;
 
 import java.sql.PreparedStatement;

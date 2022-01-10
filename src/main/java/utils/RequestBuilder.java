@@ -64,16 +64,12 @@ public class RequestBuilder {
     }
 
 
-/*    private static String getParams(String[] splitFirstLine, Boolean hasParams) {
+    private static String getParams(String[] splitFirstLine, Boolean hasParams) {
         if (hasParams) {
             return splitFirstLine[1].split("\\?")[1];
         }
 
         return splitFirstLine[1];
-    }*/
-
-    private static String getParams(String[] splitFirstLine, Boolean hasParams) {
-        return splitFirstLine[1].split("\\/(?!.*\\/)")[1];
     }
 
     private static Integer getContentLength(String line) {

@@ -26,11 +26,13 @@ public class User {
     @Getter
     private int lost_battles;
     @Getter
+    private int draw_battles;
+    @Getter
     private int elo;
     // Jackson needs the default constructor
     public User() {}
 
-    public User(int id, String username, String token, int coins, int total_battles, int won_battles, int lost_battles, int elo) {
+    public User(int id, String username, String token, int coins, int total_battles, int won_battles, int lost_battles, int draw_battles, int elo) {
         this.username = username;
         this.id = id;
         this.token = token;
@@ -38,6 +40,7 @@ public class User {
         this.total_battles = total_battles;
         this.won_battles = won_battles;
         this.lost_battles = lost_battles;
+        this.draw_battles = draw_battles;
         this.elo = elo;
     }
 }

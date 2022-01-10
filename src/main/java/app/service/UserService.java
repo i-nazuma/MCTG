@@ -17,7 +17,7 @@ public class UserService {
     public User getUserByUsername(String username) {
 
         try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
-                SELECT id, username, token, coins, total_battles, won_battles, lost_battles, elo
+                SELECT id, username, token, coins, total_battles, won_battles, lost_battles, draws elo
                  FROM users WHERE username=?
                  """)
         ) {
@@ -32,7 +32,8 @@ public class UserService {
                         resultSet.getInt( 5 ),
                         resultSet.getInt( 6 ),
                         resultSet.getInt( 7 ),
-                        resultSet.getInt( 8 )
+                        resultSet.getInt( 8 ),
+                        resultSet.getInt( 9 )
 
                 );
             }
@@ -124,7 +125,7 @@ public class UserService {
 
     public User getUserByToken(String token){
         try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
-                SElECT id, username, coins, total_battles, won_battles, lost_battles, elo FROM users WHERE token=?
+                SElECT id, username, coins, total_battles, won_battles, lost_battles, draws elo FROM users WHERE token=?
                 """ )
         ) {
             stmt.setString(1, token);
@@ -138,7 +139,8 @@ public class UserService {
                             resultSet.getInt( 4 ),
                             resultSet.getInt( 5 ),
                             resultSet.getInt( 6 ),
-                            resultSet.getInt( 7 )
+                            resultSet.getInt( 7 ),
+                            resultSet.getInt( 8 )
                     );
             }
         } catch (SQLException e) {
@@ -150,7 +152,7 @@ public class UserService {
     public ArrayList<User> getUsersRankedByElo() {
         ArrayList<User> allUsers = new ArrayList<>();
         try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
-                SElECT id, username, token, coins, total_battles, won_battles, lost_battles, elo FROM users
+                SElECT id, username, token, coins, total_battles, won_battles, lost_battles, draws, elo FROM users
                 ORDER BY elo, username ASC""" )
         ) {
             ResultSet resultSet = stmt.executeQuery();
@@ -163,7 +165,8 @@ public class UserService {
                         resultSet.getInt( 5 ),
                         resultSet.getInt( 6 ),
                         resultSet.getInt( 7 ),
-                        resultSet.getInt( 8 )
+                        resultSet.getInt( 8 ),
+                        resultSet.getInt( 9 )
                 ));
             }
         } catch (SQLException e) {

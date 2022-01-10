@@ -23,22 +23,38 @@ public class UserController extends Controller {
 
     // GET /user
     public Response getUser(Request request) {
-        if(request.getParams().equals("users") || request.getParams().equals("users/")){
+
+        String username;
+
+        if(request.getAuthorization() != null) {
+            username = request.getAuthorization().split(" ")[1].split("-")[0];
+        }else{
             return new Response(
-                    HttpStatus.OK,
+                    HttpStatus.UNAUTHORIZED,
                     ContentType.JSON,
-                    "{ message: \"add your username to the end of the URL to get your user data! Example: users/janedoe \" }"
+                    "{ message: \"Authorization Token is missing! \" }"
             );
-        }else if (this.userService.checkIfUserExists(request.getParams())){
+        }
+        if(!request.getPathname().equals("/users/" + username)){
+            return new Response(
+                    HttpStatus.BAD_REQUEST,
+                    ContentType.JSON,
+                    "{ message: \"add your own username to the end of the URL to get your user data! Example: users/janedoe \" }"
+            );
+        }
+
+        if (this.userService.checkIfUserExists(username)){
             User user = null;
             UserProfile additionalData = null;
-                user = this.userService.getUserByUsername(request.getParams());
+
+                user = this.userService.getUserByUsername(username);
                 additionalData = this.userService.getUserProfile(user.getId());
+
                 if(user.getToken().equals(request.getAuthorization())){
                     return new Response(
                             HttpStatus.OK,
                             ContentType.JSON,
-                            "{ Username: " + user.getUsername() + ": Name: \"" + additionalData.getName() + "\" Bio: \"" + additionalData.getBio() + "\" Image: \"" + additionalData.getImage() + "\""
+                            "{ Username: " + username + ": Name: \"" + additionalData.getName() + "\" Bio: \"" + additionalData.getBio() + "\" Image: \"" + additionalData.getImage() + "\""
                     );
                 }else return new Response(
                         HttpStatus.UNAUTHORIZED,
@@ -138,12 +154,12 @@ public class UserController extends Controller {
                 "<table><tr>" +
                 "<th>Username</th>" +
                 "<th>Total Battles</th>" +
-                "<th>Won/Lost</th>" +
+                "<th>Won/Lost/Draw</th>" +
                 "<th>ELO</th>" +
                 "</tr>");
         for(User u : allUsers){
             String row = "<tr><td>"+ u.getUsername() +"</td><td>"+ u.getTotal_battles()
-                    +"</td><td>"+ u.getWon_battles() +"/"+ u.getLost_battles() +"</td><td>" + u.getElo() +
+                    +"</td><td>"+ u.getWon_battles() +"/"+ u.getLost_battles() +"/"+ u.getDraw_battles() +"</td><td>" + u.getElo() +
                     "</td></tr>";
             html.append(row);
         }
@@ -166,7 +182,7 @@ public class UserController extends Controller {
                         ContentType.JSON,
                         "{ \"message\" : \"Here are the battle statistics for " + user.getUsername() + ": " +
                                 "\" \"totalbattles\" : \""+ user.getTotal_battles() +"\" \"wonbattles\" : \""+ user.getWon_battles() +
-                                "\" \"lostbattles\" : \""+ user.getLost_battles() +"\" }"
+                                "\" \"lostbattles\" : \""+ user.getLost_battles() +"\" \"draws\" : \""+ user.getDraw_battles() + "\" }"
                 );
             }else{
                 return new Response(
@@ -180,21 +196,34 @@ public class UserController extends Controller {
     }
 
     public Response editUser(Request request) {
-        String username = request.getParams();
-        if(username.equals("users") || username.equals("users/")){
+
+        String username;
+
+        if(request.getAuthorization() != null) {
+            username = request.getAuthorization().split(" ")[1].split("-")[0];
+        }else{
             return new Response(
-                    HttpStatus.OK,
+                    HttpStatus.UNAUTHORIZED,
                     ContentType.JSON,
-                    "{ message: \"add your username to the end of the URL to edit your user data! Example: users/janedoe \" }"
+                    "{ message: \"Authorization Token is missing! \" }"
             );
-        }else if (this.userService.checkIfUserExists(request.getParams())){
+        }
+        if(!request.getPathname().equals("/users/" + username)){
+            return new Response(
+                    HttpStatus.BAD_REQUEST,
+                    ContentType.JSON,
+                    "{ message: \"add your own username to the end of the URL to edit your user data! Example: users/janedoe \" }"
+            );
+        }
+
+        if (this.userService.checkIfUserExists(username)){
             User user = null;
             UserProfile userProfile = null;
             try {
-                user = this.userService.getUserByUsername(request.getParams());
+                user = this.userService.getUserByUsername(username);
                 if(user.getToken().equals(request.getAuthorization())){
                     userProfile = this.getObjectMapper().readValue(request.getBody(), UserProfile.class);
-                    this.userService.updateUser(user.getUsername(), userProfile.getName(), userProfile.getBio(), userProfile.getImage());
+                    this.userService.updateUser(username, userProfile.getName(), userProfile.getBio(), userProfile.getImage());
                     return new Response(
                             HttpStatus.OK,
                             ContentType.JSON,
