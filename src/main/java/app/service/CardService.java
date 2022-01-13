@@ -136,6 +136,10 @@ public class CardService {
     }
 
     public ArrayList<Card> getAllCardsForUser(int user_id){
+
+        if(!this.checkIfUserHasCards(user_id)){
+            return null;
+        }
         ArrayList<Card> allCards = new ArrayList<>();
         try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
                 SElECT token, name, damage FROM cards WHERE user_id=?
@@ -180,7 +184,7 @@ public class CardService {
     public boolean checkIfCardIsAlreadyInDeck(String id){
         try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
                 SElECT in_deck FROM cards
-                 WHERE token=?""" )
+                 WHERE token = ?""" )
         ) {
             stmt.setString(1, id);
             ResultSet resultSet = stmt.executeQuery();
@@ -206,8 +210,46 @@ public class CardService {
         return false;
     }
 
+    public boolean checkIfUserHasCards(int user_id) {
+        try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
+                SELECT COUNT(*) FROM cards WHERE user_id = ?
+                 """)
+        ) {
+            stmt.setInt( 1, user_id);
+            ResultSet resultSet = stmt.executeQuery();
+            if( resultSet.next() ) {
+                int tmp = resultSet.getInt(1);
+                return tmp > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean checkIfUserHasCardsInDeck(int user_id) {
+        try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
+                SELECT COUNT(*) FROM cards WHERE user_id = ? AND in_deck = true
+                 """)
+        ) {
+            stmt.setInt( 1, user_id);
+            ResultSet resultSet = stmt.executeQuery();
+            if( resultSet.next() ) {
+                int tmp = resultSet.getInt(1);
+                return tmp > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
     public ArrayList<Card> getDeckForUser(int user_id){
+
+        if(!this.checkIfUserHasCardsInDeck(user_id)){
+            return null;
+        }
+
         ArrayList<Card> allCardsInDeck = new ArrayList<>();
         try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
                 SElECT token, name, damage FROM cards
@@ -215,9 +257,7 @@ public class CardService {
         ) {
             stmt.setInt(1, user_id);
             ResultSet resultSet = stmt.executeQuery();
-            if(!resultSet.next()){
-                return null;
-            }
+
             while( resultSet.next() ) {
                 allCardsInDeck.add(new Card(
                         resultSet.getString(1),

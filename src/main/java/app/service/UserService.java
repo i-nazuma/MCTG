@@ -17,7 +17,7 @@ public class UserService {
     public User getUserByUsername(String username) {
 
         try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
-                SELECT id, username, token, coins, total_battles, won_battles, lost_battles, draws elo
+                SELECT id, username, token, coins, total_battles, won_battles, lost_battles, draws, elo
                  FROM users WHERE username=?
                  """)
         ) {

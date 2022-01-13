@@ -148,6 +148,11 @@ public class CardController extends Controller{
     }
 
     public Response showDeck(Request request) {
+
+        if(request.getParams().equals("format=plain")){
+            return showDeckPlain(request);
+        }
+
         ArrayList<Card> cardList =  new ArrayList<>();
         StringBuilder allCardsJSON = new StringBuilder("{");
         String username = request.getAuthorization().split(" ")[1].split("-")[0];
