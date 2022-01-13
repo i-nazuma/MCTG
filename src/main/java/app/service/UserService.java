@@ -8,9 +8,15 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class UserService {
+    private static UserService instance;
 
-    public UserService() {
+    private UserService() {}
 
+    public static synchronized UserService getInstance() {
+        if (UserService.instance == null) {
+            UserService.instance = new UserService();
+        }
+        return UserService.instance;
     }
 
     // GET /user/:id

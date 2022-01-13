@@ -16,8 +16,8 @@ public class App implements ServerApp {
     private final CardController cardController;
 
     public App() {
-        this.userController = new UserController(new UserService());
-        this.cardController = new CardController(new CardService(), new UserService());
+        this.userController = new UserController(UserService.getInstance());
+        this.cardController = new CardController(CardService.getInstance(), UserService.getInstance());
     }
 
     @Override

@@ -9,10 +9,15 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class CardService {
-    public CardService(){
+    private static CardService instance;
+    private CardService(){}
 
+    public static synchronized CardService getInstance() {
+        if (CardService.instance == null) {
+            CardService.instance = new CardService();
+        }
+        return CardService.instance;
     }
-
     private int getHighestPackageNumber() { // only not sold ones
         try ( PreparedStatement statement = DatabaseService.getInstance().prepareStatement("""
                 SELECT MAX(id)

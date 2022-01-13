@@ -8,7 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 public class TestingMain extends Controller {
 
     public TestingMain() {
-        CardService cardService = new CardService();
+        CardService cardService = CardService.getInstance();
     }
     public void createCard(String requestBody){
         Card card = null;
