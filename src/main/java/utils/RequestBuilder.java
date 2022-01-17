@@ -37,15 +37,16 @@ public class RequestBuilder {
                     request.setAuthorization(getAuthorization(line));
                 }
             }
-
-            if (request.getMethod() == Method.POST || request.getMethod() == Method.PUT) {
-                int asciChar;
-                for (int i = 0; i < request.getContentLength(); i++) {
-                    asciChar = in.read();
-                    String body = request.getBody();
-                    request.setBody(body + ((char) asciChar));
+            //if(!request.getPathname().equals("/battles")) { // instead of this, I just added -d "" in the curl script to not get a empty Body
+                if (request.getMethod() == Method.POST || request.getMethod() == Method.PUT) {
+                    int asciChar;
+                    for (int i = 0; i < request.getContentLength(); i++) {
+                        asciChar = in.read();
+                        String body = request.getBody();
+                        request.setBody(body + ((char) asciChar));
+                    }
                 }
-            }
+            //}
         }
 
         return request;

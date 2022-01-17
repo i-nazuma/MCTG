@@ -36,11 +36,11 @@ public class Card {
 
 
         //this part is to read the element- and card type out of the name,
-        // unfortunately java doesn't let methods pass objects as reference
+        // unfortunately java doesn't let methods pass objects as reference, could be much cleaner...
         String[] words;
         {
             assert name != null;
-            words = name.split("(?<!^)(?=[A-Z])"); //splits camelCase/PascalCase
+            words = name.split("(?<!^)(?=[A-Z])"); //this regex splits camelCase/PascalCase
         }
         if(words.length == 1) {
             this.elementType = ElementType.REGULAR;
@@ -74,5 +74,60 @@ public class Card {
                 case "Goblin" -> this.cardType = CardType.GOBLIN;
             }
         }
+    }
+
+    //here we handle the specialties, where the actual Damage doesn't even matter
+    public boolean defeats(Card opponentCard){
+        //Monster VS Monster
+        if(!CardType.SPELL.equals(this.getCardType()) && !CardType.SPELL.equals(opponentCard.getCardType())){
+            //Dragons defeat Goblins
+            if(CardType.DRAGON.equals(this.getCardType()) && CardType.GOBLIN.equals(opponentCard.getCardType())){
+                return true;
+
+            //Wizards defeat Orks
+            }else if(CardType.WIZARD.equals(this.getCardType()) && CardType.ORK.equals(opponentCard.getCardType())){
+                return true;
+
+            //FireElves defeat Dragons
+            }else if(ElementType.FIRE.equals(this.getElementType()) && CardType.ELF.equals(this.getCardType()) && CardType.DRAGON.equals(opponentCard.getCardType())){
+                return true;
+            }
+        }
+        //Monster VS Spell, only one specialty: Krakens defeat Spells
+        if(CardType.KRAKEN.equals(this.getCardType()) && CardType.SPELL.equals(opponentCard.getCardType())){
+            return true;
+        }
+
+        //Spell VS Monster, also only one specialty: WaterSpells defeat Knights
+        if(CardType.SPELL.equals(this.getCardType()) && ElementType.WATER.equals(this.getElementType()) && CardType.KNIGHT.equals(opponentCard.getCardType())){
+            return true;
+        }
+
+        return false; //no specialty involved
+    }
+
+    //in case Spells are involved, the damage effectiveness is handled here
+    public float calculateEffectiveDamage(Card opponentCard){
+        if(CardType.SPELL.equals(this.getCardType())){
+
+            if //effective (200% damage
+                    ((ElementType.WATER.equals(this.getElementType()) && ElementType.FIRE.equals(opponentCard.getElementType())) ||
+                    (ElementType.FIRE.equals(this.getElementType()) && ElementType.REGULAR.equals(opponentCard.getElementType())) ||
+                    (ElementType.REGULAR.equals(this.getElementType()) && ElementType.WATER.equals(opponentCard.getElementType())))
+            {
+                return 2 * this.getDamage();
+            }
+
+            if //not effective (50% damage
+                    ((ElementType.FIRE.equals(this.getElementType()) && ElementType.WATER.equals(opponentCard.getElementType())) ||
+                            (ElementType.REGULAR.equals(this.getElementType()) && ElementType.FIRE.equals(opponentCard.getElementType())) ||
+                            (ElementType.WATER.equals(this.getElementType()) && ElementType.REGULAR.equals(opponentCard.getElementType())))
+            {
+                return this.getDamage() / 2;
+            }
+        }
+
+        //no effect
+        return this.getDamage();
     }
 }

@@ -1,14 +1,40 @@
 package app.model;
 
 import lombok.Getter;
+import lombok.Setter;
+
+import java.util.ArrayList;
 
 public class Battle {
+    @Setter
     @Getter
-    int id;
+    private int id;
+    @Setter
     @Getter
-    Card cardA;
+    private boolean isFinished;
+    @Setter
     @Getter
-    Card cardB;
+    private User playerA;
+    @Setter
     @Getter
-    Card winnerCard;
+    private User playerB;
+    @Setter
+    @Getter
+    private User winningPlayer;
+    @Setter
+    @Getter
+    private  ArrayList<BattleRound> battlesRounds;
+
+    public Battle(int id, boolean isFinished, User playerA, User playerB, User winningPlayer) {
+        this.id = id;
+        this.isFinished = isFinished;
+        this.playerA = playerA;
+        this.playerB = playerB;
+        this.winningPlayer = winningPlayer;
+        this.battlesRounds = new ArrayList<>();
+    }
+
+    public void addRound(BattleRound battleRound) {
+        this.battlesRounds.add(battleRound);
+    }
 }

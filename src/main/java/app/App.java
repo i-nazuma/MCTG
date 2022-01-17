@@ -1,7 +1,9 @@
 package app;
 
+import app.controller.BattleController;
 import app.controller.CardController;
 import app.controller.UserController;
+import app.service.BattleService;
 import app.service.CardService;
 import app.service.UserService;
 import http.ContentType;
@@ -14,10 +16,12 @@ import server.ServerApp;
 public class App implements ServerApp {
     private final UserController userController;
     private final CardController cardController;
+    private final BattleController battleController;
 
     public App() {
         this.userController = new UserController(UserService.getInstance());
         this.cardController = new CardController(CardService.getInstance(), UserService.getInstance());
+        this.battleController = new BattleController(BattleService.getInstance(), CardService.getInstance(), UserService.getInstance());
     }
 
     @Override
@@ -59,11 +63,8 @@ public class App implements ServerApp {
             return this.userController.showScoreBoard(request);
 
         } else if(request.getPathname().equals("/battles") && request.getMethod() == Method.POST) {
-            return new Response(
-                    HttpStatus.BAD_REQUEST,
-                    ContentType.JSON,
-                    "{ \"message\" : \"Not implemented yet.\" }"
-            );
+            return this.battleController.battle(request);
+
         } else if(request.getPathname().equals("/tradings") && request.getMethod() == Method.GET) {
             return new Response(
                     HttpStatus.BAD_REQUEST,

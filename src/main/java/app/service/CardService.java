@@ -276,4 +276,14 @@ public class CardService {
         return allCardsInDeck;
     }
 
+    public void resetDeck(int userID) {
+        try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
+                UPDATE cards SET in_deck = false WHERE user_id = ?""" )
+        ) {
+            stmt.setInt(1, userID);
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

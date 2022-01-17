@@ -49,6 +49,36 @@ public class UserService {
         return null;
     }
 
+    //needed for Battle
+    public User getUserByID(int id) {
+
+        try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
+                SELECT id, username, token, coins, total_battles, won_battles, lost_battles, draws, elo
+                 FROM users WHERE id=?
+                 """)
+        ) {
+            stmt.setInt( 1, id);
+            ResultSet resultSet = stmt.executeQuery();
+            if( resultSet.next() ) {
+                return new User(
+                        resultSet.getInt(1),
+                        resultSet.getString( 2 ),
+                        resultSet.getString( 3 ),
+                        resultSet.getInt( 4 ),
+                        resultSet.getInt( 5 ),
+                        resultSet.getInt( 6 ),
+                        resultSet.getInt( 7 ),
+                        resultSet.getInt( 8 ),
+                        resultSet.getInt( 9 )
+
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     // POST /user
     public void addUser(User user) {
         try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
@@ -215,5 +245,44 @@ public class UserService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void updateStats(User user, int result){
+        try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
+                UPDATE users SET total_battles=?, won_battles=?, lost_battles=?, draws=?, elo=? WHERE id=?
+                """ )
+        ) {
+            switch (result){
+                case -1: //loss
+                    stmt.setInt(1, user.getTotal_battles()+1);
+                    stmt.setInt( 2, user.getWon_battles());
+                    stmt.setInt( 3, user.getLost_battles()+1);
+                    stmt.setInt( 4, user.getDraw_battles());
+                    stmt.setInt( 5, user.getElo()-5);
+                    stmt.setInt( 6, user.getId());
+                    break;
+                case 0: //draw
+                    stmt.setInt(1, user.getTotal_battles()+1);
+                    stmt.setInt( 2, user.getWon_battles());
+                    stmt.setInt( 3, user.getLost_battles());
+                    stmt.setInt( 4, user.getDraw_battles()+1);
+                    stmt.setInt( 5, user.getElo());
+                    stmt.setInt( 6, user.getId());
+                    break;
+                case 1: //win
+                    stmt.setInt(1, user.getTotal_battles()+1);
+                    stmt.setInt( 2, user.getWon_battles()+1);
+                    stmt.setInt( 3, user.getLost_battles());
+                    stmt.setInt( 4, user.getDraw_battles());
+                    stmt.setInt( 5, user.getElo()+3);
+                    stmt.setInt( 6, user.getId());
+                    break;
+                default:
+
+            }
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -125,19 +125,7 @@ public class CardController extends Controller{
                         "{ message: \"You have no cards! Acquire a package and try again.\" }"
                 );
             }
-            int i = 1;
-            for (Card c : cardList) {
-                String cardString = "                                                              " +
-                        "Card " + i + ": Name: \"" + c.getName() + "\" Damage: \"" + c.getDamage() + "\" Id: \"" + c.getToken() + "\"";
-                i++;
-                allCardsJSON.append(cardString);
-            }
-            allCardsJSON.append("}");
-            return new Response(
-                    HttpStatus.OK,
-                    ContentType.JSON,
-                    allCardsJSON.toString()
-            );
+            return getJSONResponse(cardList, allCardsJSON);
         }else{
             return new Response(
                     HttpStatus.BAD_REQUEST,
@@ -166,19 +154,7 @@ public class CardController extends Controller{
                         "{ message: \"You have no cards in your deck! Configure your deck and try again.\" }"
                 );
             }
-            int i = 1;
-            for (Card c : cardList) {
-                String cardString = "                                                              " +
-                    "Card " + i + ": Name: \"" + c.getName() + "\" Damage: \"" + c.getDamage() + "\" Id: \"" + c.getToken() + "\"";
-                i++;
-                allCardsJSON.append(cardString);
-            }
-            allCardsJSON.append("}");
-            return new Response(
-                    HttpStatus.OK,
-                    ContentType.JSON,
-                    allCardsJSON.toString()
-            );
+            return getJSONResponse(cardList, allCardsJSON);
         }else{
             return new Response(
                     HttpStatus.BAD_REQUEST,
@@ -186,6 +162,22 @@ public class CardController extends Controller{
                     "{ message: \"Error: User does not exist, please create an account first.\" }"
             );
         }
+    }
+
+    private Response getJSONResponse(ArrayList<Card> cardList, StringBuilder allCardsJSON) {
+        int i = 1;
+        for (Card c : cardList) {
+            String cardString = "                                                              " +
+                "Card " + i + ": Name: \"" + c.getName() + "\" Damage: \"" + c.getDamage() + "\" Id: \"" + c.getToken() + "\"";
+            i++;
+            allCardsJSON.append(cardString);
+        }
+        allCardsJSON.append("}");
+        return new Response(
+                HttpStatus.OK,
+                ContentType.JSON,
+                allCardsJSON.toString()
+        );
     }
 
     public Response showDeckPlain(Request request) {
