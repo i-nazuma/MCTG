@@ -15,7 +15,7 @@ public class RequestBuilder {
     public static Request buildRequest(BufferedReader in) throws IOException {
         String line = in.readLine();
         Request request = new Request();
-
+        System.out.println(line);
         if (line != null) {
             String[] splitFirstLine = line.split(" ");
             Boolean hasParams = splitFirstLine[1].indexOf("?") != -1;
@@ -37,7 +37,7 @@ public class RequestBuilder {
                     request.setAuthorization(getAuthorization(line));
                 }
             }
-            //if(!request.getPathname().equals("/battles")) { // instead of this, I just added -d "" in the curl script to not get a empty Body
+            //if(!request.getPathname().equals("/battles")) { // workaround.. instead of this, I just added -d "" in the curl script to not get a empty Body when POST/PUT
                 if (request.getMethod() == Method.POST || request.getMethod() == Method.PUT) {
                     int asciChar;
                     for (int i = 0; i < request.getContentLength(); i++) {

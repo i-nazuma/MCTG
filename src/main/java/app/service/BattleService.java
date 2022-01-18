@@ -5,6 +5,7 @@ import app.model.BattleRound;
 import app.model.Card;
 import app.model.User;
 import database.DatabaseService;
+import utils.BattleHTML;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -119,11 +120,14 @@ public class BattleService {
 
     public String startBattle(int battleID, int playerAID, int playerBID) {
         //here the actual battle takes place
+        StringBuilder BattleLogHTML = new StringBuilder(); //my HTML BattleLog
 
         Battle battle = new Battle(battleID, false,
                 this.userService.getUserByID(playerAID),
                 this.userService.getUserByID(playerBID),
                 null);
+
+        BattleLogHTML.append(BattleHTML.head(battle));
 
         System.out.println("----------" + battle.getPlayerA().getUsername() + " VS " + battle.getPlayerB().getUsername() + "----------\s");
         ArrayList<Card> deckA = this.cardService.getDeckForUser(battle.getPlayerA().getId());
@@ -145,8 +149,8 @@ public class BattleService {
                 cardA = deckA.get(new Random().nextInt(deckA.size()));
                 cardB = deckB.get(new Random().nextInt(deckB.size()));
                 winnerCard = null;
-
-                System.out.println("ROUND " + battle.getBattlesRounds().size()+1 + ":\s");
+                int newRoundNumber = battle.getBattlesRounds().size() + 1;
+                System.out.println("ROUND " + newRoundNumber + ":\s");
                 if (cardA.defeats(cardB) || cardA.calculateEffectiveDamage(cardB) > cardB.calculateEffectiveDamage(cardA)) {
                     // Player A wins this round, and gets cardB
                     winnerCard = cardA;
@@ -159,35 +163,43 @@ public class BattleService {
                     deckB.add(cardA);
                 }
 
+                System.out.println("Deck A: " + deckA.size() + "\s CardA Dmg: " + cardA.calculateEffectiveDamage(cardB) + "\s");
+                System.out.println("Deck B: " + deckB.size() + "\s CardB Dmg: " + cardB.calculateEffectiveDamage(cardA) + "\s");
+
                 if (winnerCard != null) {
                     System.out.println("Winner: " + winnerCard.getName() + "  (" + winnerCard.getDamage() + " dmg)");
                 }else{
                     //draw
                     System.out.println("It's a Draw.\s");
                 }
-                System.out.println("Deck A: " + deckA.size() + "\s");
-                System.out.println("Deck B: " + deckB.size() + "\s");
+                BattleLogHTML.append(BattleHTML.row(newRoundNumber, cardA, cardB,winnerCard));
                 battle.addRound(new BattleRound(battle.getBattlesRounds().size()+1, cardA, cardB, winnerCard));
             }
         }
 
-        //reset decks
-        this.cardService.resetDeck(battle.getPlayerA().getId());
-        this.cardService.resetDeck(battle.getPlayerB().getId());
+        //determining Winner
+        if(battle.getWinningPlayer() == null){ //not a clear winner, both users have cards left
+            if(deckA.size() == deckB.size()) { //it's a draw, both users have the same amount of cards left
 
-        //aftermath, saving stats in database
-        if(battle.getWinningPlayer() == null){ //it's a draw
-            System.out.println("----------   BATTLE DRAW!   ----------\s");
+                System.out.println("----------   BATTLE DRAW!   ----------\s");
+                this.setDraw(battle);
+                this.userService.updateStats(battle.getPlayerA(), 0);
+                this.userService.updateStats(battle.getPlayerB(), 0);
 
-            this.setDraw(battle);
-            this.userService.updateStats(battle.getPlayerA(), 0);
-            this.userService.updateStats(battle.getPlayerB(), 0);
+            }else if(deckA.size() > deckB.size()){
 
-        }else{
+                battle.setWinningPlayer(battle.getPlayerA());
+            }else{
+                battle.setWinningPlayer(battle.getPlayerB());
+            }
+        } //set Stats
+        BattleLogHTML.append(BattleHTML.resultRow(battle));
+        BattleLogHTML.append(BattleHTML.end());
 
-            this.setWinnerForBattle(battle.getWinningPlayer(),battle);
+        if(battle.getWinningPlayer() != null){
+            this.setWinnerForBattle(battle.getWinningPlayer(), battle);
             this.userService.updateStats(battle.getWinningPlayer(), 1);
-            System.out.println("----------   "+ battle.getWinningPlayer().getUsername() +" WINS!   ----------\s");
+            System.out.println("----------   " + battle.getWinningPlayer().getUsername() + " WINS!   ----------\s");
 
             if(battle.getPlayerA().equals(battle.getWinningPlayer())){
                 //Player A won
@@ -198,7 +210,12 @@ public class BattleService {
                 this.userService.updateStats(battle.getPlayerA(), -1);
             }
         }
-        return "Battle in progress";
+
+        //reset decks
+        this.cardService.resetDeck(battle.getPlayerA().getId());
+        this.cardService.resetDeck(battle.getPlayerB().getId());
+
+        return BattleLogHTML.toString();
     }
 
     private boolean setWinnerForBattle(User winner, Battle battle) {

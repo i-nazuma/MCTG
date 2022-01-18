@@ -9,7 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
-
+//this was planned to use for hashing sensitive information, but unfortunately bits to string didn't really work
 public class Hash {
     private static Hash instance;
 

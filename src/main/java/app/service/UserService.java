@@ -161,7 +161,7 @@ public class UserService {
 
     public User getUserByToken(String token){
         try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
-                SElECT id, username, coins, total_battles, won_battles, lost_battles, draws elo FROM users WHERE token=?
+                SElECT id, username, coins, total_battles, won_battles, lost_battles, draws, elo FROM users WHERE token=?
                 """ )
         ) {
             stmt.setString(1, token);
