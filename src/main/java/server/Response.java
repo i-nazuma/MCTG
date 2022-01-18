@@ -2,7 +2,9 @@ package server;
 
 import http.ContentType;
 import http.HttpStatus;
+import lombok.ToString;
 
+@ToString
 public class Response {
     private int status;
     private String message;

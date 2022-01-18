@@ -189,7 +189,7 @@ public class UserService {
         ArrayList<User> allUsers = new ArrayList<>();
         try ( PreparedStatement stmt = DatabaseService.getInstance().prepareStatement("""
                 SElECT id, username, token, coins, total_battles, won_battles, lost_battles, draws, elo FROM users
-                ORDER BY elo, username ASC""" )
+                ORDER BY elo DESC, username DESC""" )
         ) {
             ResultSet resultSet = stmt.executeQuery();
             while( resultSet.next() ) {

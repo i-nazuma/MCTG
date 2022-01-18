@@ -15,7 +15,6 @@ public class RequestBuilder {
     public static Request buildRequest(BufferedReader in) throws IOException {
         String line = in.readLine();
         Request request = new Request();
-        System.out.println(line);
         if (line != null) {
             String[] splitFirstLine = line.split(" ");
             Boolean hasParams = splitFirstLine[1].indexOf("?") != -1;

@@ -53,6 +53,7 @@ public class Card {
                 case "Wizard" -> this.cardType = CardType.WIZARD;
                 case "Knight" -> this.cardType = CardType.KNIGHT;
                 case "Goblin" -> this.cardType = CardType.GOBLIN;
+                default -> throw new IllegalArgumentException("Not a valid CardType! (" + words[0] + ")");
             }
 
         }else if(words.length == 2){
@@ -60,6 +61,7 @@ public class Card {
                 case "Fire" -> this.elementType = ElementType.FIRE;
                 case "Water" -> this.elementType = ElementType.WATER;
                 case "Regular" -> this.elementType = ElementType.REGULAR;
+                default -> throw new IllegalArgumentException("Not a valid ElementType! (" + words[0] + ")");
             }
 
             switch (words[1]) {
@@ -72,6 +74,7 @@ public class Card {
                 case "Wizard" -> this.cardType = CardType.WIZARD;
                 case "Knight" -> this.cardType = CardType.KNIGHT;
                 case "Goblin" -> this.cardType = CardType.GOBLIN;
+                default -> throw new IllegalArgumentException("Not a valid CardType! (" + words[1] + ")");
             }
         }
     }
